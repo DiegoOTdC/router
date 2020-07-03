@@ -9,17 +9,18 @@ export default function MoviePage() {
   //whenever params change, fetch new data. or when you get here.. fetch the data. use useEffect
 
   //fetch the data // got to the manual of omdb API... search by id... then http://www.omdbapi.com/?i=tt0880684 -> still have to include your apikey
-  const fetchData = async () => {
+  const getData = async () => {
     const response = await Axios.get(
       `http://www.omdbapi.com/?i=${params.imdb_id}&apikey=7e7d1a01`
     );
-    console.log("response", response);
+
     set_movieData(response.data);
   };
 
   useEffect(() => {
     console.log("use effect running");
-    fetchData();
+    getData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
 
   const { Year, Title, Poster, Plot, Actors, Awards } = movieData;
@@ -30,7 +31,7 @@ export default function MoviePage() {
       <h2>
         {Title} - {Year}
       </h2>
-      <img src={Poster} />
+      <img src={Poster} alt="Movie Poster" />
       <p>
         {Actors} <br></br>
         {Awards}

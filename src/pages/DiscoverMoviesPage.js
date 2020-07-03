@@ -41,6 +41,7 @@ export default function DiscoverMoviesPage() {
 
   useEffect(() => {
     search();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.searchText]);
 
   const newSearchFunctionInAdressbar = () => {
