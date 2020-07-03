@@ -1,65 +1,91 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; //dont use UseEffect van fetching
 import axios from "axios";
-import SearchResult from "../components/SearchResult";
+import Timeout from "await-timeout";
+import { useParams, useHistory, NavLink } from "react-router-dom";
 
+//1. Export default function
 export default function DiscoverMoviesPage() {
+  //name in capital
   const [searchText, set_searchText] = useState("");
-  const [movies, set_movies] = useState();
+  //define a new state
+  const [searchState, set_searchState] = useState("Search for movies"); //there is nothing here yet
+  //define new variable for movies, show them in state.
+  const [movies, set_movies] = useState([]); // data fetched will be set in this array
+  const params = useParams(); //to get the parameter after the discovermoviespage on the app,js
+  const history = useHistory();
+  console.log("searchState test:", searchState);
+
+  console.log("what are my params:", params.searchText);
 
   const search = async () => {
     console.log("Start searching for:", searchText);
 
-    // Best practice: encode the string so that special characters
-    //  like '&' and '?' don't accidentally mess up the URL
-    const queryParam = encodeURIComponent(searchText);
+    //Best practice: encode the string so that special characters like '& and ? don't accidentally mess up the URL
 
-    // Option A: use the browser-native fetch function
-    //  const data = await fetch(
-    //    `https://omdbapi.com/?apikey=b3d9013d&s=${queryParam}`
-    //  ).then((r) => r.json());
+    set_searchState("Searching..."); //Before fetched is searching
+    await Timeout.set(2000); //helps with time whilst searching
 
-    // Option B: use the `axios` library like we did on Tuesday
+    //option B: use the 'axios' library
     const response = await axios.get(
-      `https://omdbapi.com/?apikey=7e7d1a01&s=${queryParam}`
+      `https://omdbapi.com/?s=${params.searchText}&apikey=7e7d1a01`
     );
 
-    console.log("response test:", response);
     const { data } = response;
-    console.log("data test:", data);
     const { Search } = data;
-    console.log("search test:", Search);
-    // const movieTitles = Search.map((movie) => {
-    //   return (
-    //     <h2>
-    //       {movie.Title} {movie.Poster} {movie.imdbID}
-    //     </h2>
-    //   );
-    // });
-    //console.log("Movie title test:", movieTitles);
+
+    console.log("Success!", Search);
 
     set_movies(Search);
+    set_searchState("Done");
   };
+
+  useEffect(() => {
+    search();
+  }, [params.searchText]);
+
+  const newSearchFunctionInAdressbar = () => {
+    const queryParam = encodeURIComponent(searchText); //<-- search what is based on params
+    history.push(`/DiscoverMoviesPage/${queryParam}`);
+  };
+
+  console.log("movies test:", movies);
+
+  const displayMovies = movies
+    ? movies.map((movieCard) => {
+        return (
+          <NavLink
+            className="col-md-4"
+            to={`/movie/${movieCard.imdbID}`}
+            key={movieCard.imdbID}
+          >
+            <div className="card">
+              <img src={movieCard.Poster} alt="Movie Poster:"></img>
+              <div className="card-body">
+                <p>{movieCard.Title}</p>
+                <p>{movieCard.Year}</p>
+              </div>
+            </div>
+          </NavLink>
+        );
+      })
+    : "";
+
+  console.log("displayMovies:", displayMovies);
 
   return (
     <div>
       <h1>Discover some movies!</h1>
+      <h3>{searchState}</h3>
       <p>
         <input
           value={searchText}
           onChange={(e) => set_searchText(e.target.value)}
         />
-        <button onClick={search}>Search</button>
+        <button onClick={newSearchFunctionInAdressbar}>Search</button>
       </p>
-      {movies
-        ? movies.map((movie) => (
-            <SearchResult
-              title={movie.Title}
-              poster={movie.Poster}
-              id={movie.imdbID}
-              key={movies.indexOf(movie)}
-            />
-          ))
-        : "Loading"}
+      <div className="container">
+        <div className="row">{displayMovies}</div>
+      </div>
     </div>
   );
 }
